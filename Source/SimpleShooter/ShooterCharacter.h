@@ -10,6 +10,7 @@
 #include "ShooterCharacter.generated.h"
 
 class AGun;
+class AGrenade;
 class UPawnSensingComponent;
 UCLASS()
 class SIMPLESHOOTER_API AShooterCharacter : public ACharacter
@@ -68,8 +69,13 @@ public:
 	void shoot();
 	void Reload();
 	bool IsReloading = false;
+
+	//bindin actions
 	void ChangeToRifle();
 	void ChangeToLauncher();
+	void OnThrowPress();
+	void OnThrowRelease();
+
 private:
 	void MoveForward(float AxisValue);
 	void MoveRight(float AxisValue);
@@ -93,6 +99,9 @@ private:
 
 	UPROPERTY()
 	AGun* Launcher;
+
+	UPROPERTY()
+	AGrenade* Grenade;
 
 	UPROPERTY(EditDefaultsOnly)
 	float MaxHealth;

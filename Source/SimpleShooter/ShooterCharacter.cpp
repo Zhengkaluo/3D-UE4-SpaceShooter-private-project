@@ -3,6 +3,7 @@
 
 #include "ShooterCharacter.h"
 #include "Gun.h"
+#include "Grenade.h"
 #include "Kismet/GameplayStatics.h"
 #include "Engine/TriggerVolume.h"
 #include "Components/CapsuleComponent.h"
@@ -23,7 +24,7 @@ void AShooterCharacter::BeginPlay()
 {	
 	Super::BeginPlay();
 	CurrentHealth = MaxHealth;
-	//PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
+	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	Gun = GetWorld() -> SpawnActor<AGun>(RifleClass);
 	Launcher = GetWorld() -> SpawnActor<AGun>(LauncherClass);
 	//Launcher = GetWorld() -> SpawnActor<AGun>(LauncherClass);
@@ -130,6 +131,8 @@ void AShooterCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputCo
 	PlayerInputComponent->BindAction(TEXT("Reload"), EInputEvent::IE_Pressed, this, &AShooterCharacter::Reload);
 	PlayerInputComponent->BindAction(TEXT("ChangeToRifle"), EInputEvent::IE_Pressed, this, &AShooterCharacter::ChangeToRifle);
 	PlayerInputComponent->BindAction(TEXT("ChangeToLauncher"), EInputEvent::IE_Pressed, this, &AShooterCharacter::ChangeToLauncher);
+	PlayerInputComponent->BindAction(TEXT("Throw"),EInputEvent::IE_Pressed, this, &AShooterCharacter::OnThrowPress);
+	PlayerInputComponent->BindAction(TEXT("Throw"),EInputEvent::IE_Released, this, &AShooterCharacter::OnThrowRelease);
 	//PlayerInputComponent->BindAction(TEXT("Heal"), EInputEvent::IE_Pressed, this, &AShooterCharacter::Healing);
 }
 
@@ -223,4 +226,15 @@ void AShooterCharacter::ChangeToLauncher()
 	Launcher->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("WeaponSocket"));
 	Launcher->SetOwner(this);
 	UE_LOG(LogTemp, Warning, TEXT("Change To Laucher"));
+}
+
+void AShooterCharacter::OnThrowPress() 
+{
+	UE_LOG(LogTemp, Warning, TEXT("On Throw Press"));
+	//Grenade -> SimulatePath(PlayerPawn -> GetController(), GetActorLocation(), GetActorRotation());
+}
+
+void AShooterCharacter::OnThrowRelease() 
+{
+	UE_LOG(LogTemp, Warning, TEXT("On throw release"));
 }
