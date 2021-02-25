@@ -90,6 +90,8 @@ private:
 	UPROPERTY(EditDefaultsOnly)
 	TSubclassOf<AGun> LauncherClass;//not the gun itself
 
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<AGrenade> GrenadeClass;
 
 	UPROPERTY(EditDefaultsOnly)
 	int CurrentGun = 1;//1 for Rifle 2 for Launcher
@@ -102,6 +104,7 @@ private:
 
 	UPROPERTY()
 	AGrenade* Grenade;
+	
 
 	UPROPERTY(EditDefaultsOnly)
 	float MaxHealth;
@@ -116,5 +119,6 @@ private:
 
 	UPROPERTY(EditDefaultsOnly)
 	float HealingPercent = 0.1f;
+	
 	
 };

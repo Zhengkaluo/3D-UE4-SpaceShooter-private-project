@@ -27,16 +27,20 @@ void AShooterCharacter::BeginPlay()
 	PlayerPawn = UGameplayStatics::GetPlayerPawn(GetWorld(), 0);
 	Gun = GetWorld() -> SpawnActor<AGun>(RifleClass);
 	Launcher = GetWorld() -> SpawnActor<AGun>(LauncherClass);
+	
 	//Launcher = GetWorld() -> SpawnActor<AGun>(LauncherClass);
 	GetMesh()->HideBoneByName(TEXT("weapon_r"), EPhysBodyOp::PBO_None);
 	Gun->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("WeaponSocket"));
+	//Grenade->AttachToComponent(GetMesh(), FAttachmentTransformRules::KeepRelativeTransform, TEXT("GrenadeSocket"));
 	Gun->SetOwner(this);
+	//Grenade->SetOwner(this);
 	
 	if (PawnSensingComp)
 	{
 		//Registering the delegate which will fire when we hear something
 		PawnSensingComp->OnHearNoise.AddDynamic(this, &AShooterCharacter::OnHearNoise);
 	}
+
 	
 	//PawnSensingComp->OnSeePawn.AddDynamic(this, &AShooterCharacter::OnMySeePawn);
 	//PawnSensor = FindComponentByClass<UPawnSensingComponent>();
@@ -171,6 +175,8 @@ void AShooterCharacter::LookUpRate(float AxisValue)
 	AddControllerPitchInput(AxisValue * RotationRate * GetWorld()->GetDeltaSeconds());
 }
 
+
+
 void AShooterCharacter::shoot() 
 {	
 	
@@ -230,11 +236,21 @@ void AShooterCharacter::ChangeToLauncher()
 
 void AShooterCharacter::OnThrowPress() 
 {
-	UE_LOG(LogTemp, Warning, TEXT("On Throw Press"));
-	//Grenade -> SimulatePath(PlayerPawn -> GetController(), GetActorLocation(), GetActorRotation());
+	//if(FirsttimeGrenade == true){
+	FVector Upper = {0, 0, 70};
+	Grenade = GetWorld() -> SpawnActor<AGrenade>(GrenadeClass, GetActorLocation() + Upper, GetActorRotation());
+	//}
+	//FirsttimeGrenade = false;
+	//Grenade = GetWorld() -> SpawnActor<AGrenade>(GrenadeClass);
+	Grenade -> StartSimulate();
 }
+
+
 
 void AShooterCharacter::OnThrowRelease() 
 {
+	//Grenade -> DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
+	Grenade -> IsSimulating = false;
 	UE_LOG(LogTemp, Warning, TEXT("On throw release"));
+	Grenade -> Throw();
 }

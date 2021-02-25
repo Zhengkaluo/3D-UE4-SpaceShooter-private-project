@@ -23,8 +23,9 @@ public:
 	FVector AnotherTeamUpPlace = {2374.726807, -6891.155762, 72.476135};
 	
 	UPROPERTY(EditDefaultsOnly)
-	FVector LastTeamUpPlace = {2260.000000, -10290.000000, 40.000000};
+	FVector LastTeamUpPlace = {3970.000000, -6340.000000, 40.000000};
 
+	//FVector LastTeamUpPlace = {2260.000000, -10290.000000, 40.000000};
 	FVector LocationArray[3] = {TeamUpPlace, AnotherTeamUpPlace, LastTeamUpPlace};
 protected:
 	virtual void TickNode(UBehaviorTreeComponent& OwnerComp, uint8* NodeMemory, float DeltaSeconds) override;	
