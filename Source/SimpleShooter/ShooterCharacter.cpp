@@ -41,7 +41,6 @@ void AShooterCharacter::BeginPlay()
 		PawnSensingComp->OnHearNoise.AddDynamic(this, &AShooterCharacter::OnHearNoise);
 	}
 
-	
 	//PawnSensingComp->OnSeePawn.AddDynamic(this, &AShooterCharacter::OnMySeePawn);
 	//PawnSensor = FindComponentByClass<UPawnSensingComponent>();
 	//PawnSensor = CreateDefaultSubobject<UPawnSensingComponent>(FName("Noise Sensor"));
@@ -101,10 +100,24 @@ float AShooterCharacter::Healing()
 	float HealingValue = MaxHealth * HealingPercent;
 	HealingValue = FMath::Min(MaxHealth - CurrentHealth, HealingValue);
 	CurrentHealth += HealingValue;
+	if(HealEffect != nullptr){
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), HealEffect, GetActorLocation(), GetActorRotation());
+	}
 	UGameplayStatics::PlaySoundAtLocation(GetWorld(), HealSound, GetActorLocation());
 	UE_LOG(LogTemp, Warning, TEXT("Character currentHealth %f value"), CurrentHealth);
 	return HealingValue;
 }
+
+FString AShooterCharacter::GetGrenadeColdDown() const
+{
+	if(IsGrenadePrepared == true){
+		return TEXT("Grenade Prepared");
+	}
+	
+	return TEXT("Grenade Cold down...");
+}
+
+
 
 void AShooterCharacter::OnHearNoise(APawn* NoiseInstigator, const FVector& Location, float Volume) 
 {
@@ -117,7 +130,10 @@ void AShooterCharacter::OnHearNoise(APawn* NoiseInstigator, const FVector& Locat
 void AShooterCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	
+	float CurrentTime = GetWorld() -> GetTimeSeconds();
+	if(IsGrenadePrepared == false && CurrentTime - LastGrenadeThrowRecord > GrenadeThrowColdDown){
+		IsGrenadePrepared = true;
+	}
 }
 
 // Called to bind functionality to input
@@ -146,7 +162,10 @@ float AShooterCharacter::TakeDamage(float DamageAmount, struct FDamageEvent cons
 	DamageApplied = FMath::Min(CurrentHealth, DamageApplied);
 	CurrentHealth -= DamageApplied;
 	UE_LOG(LogTemp, Warning, TEXT("current Health %f"), CurrentHealth);
-
+	if(DamageEvent.GetTypeID() == 0){
+		UE_LOG(LogTemp, Warning, TEXT("Taken damage from Grenade"));
+		//GetMesh() -> AddImpulse(GetActorForwardVector());
+	}
 	if(IsDead()){
 		ASimpleShooterGameModeBase* GameMode = GetWorld()->GetAuthGameMode<ASimpleShooterGameModeBase>();
 		if(GameMode != nullptr){
@@ -156,7 +175,7 @@ float AShooterCharacter::TakeDamage(float DamageAmount, struct FDamageEvent cons
 		//switch of capsule component
 		GetCapsuleComponent() -> SetCollisionEnabled(ECollisionEnabled::NoCollision);
 	}
-
+	
 	return DamageApplied;
 }
 
@@ -238,11 +257,13 @@ void AShooterCharacter::OnThrowPress()
 {
 	//if(FirsttimeGrenade == true){
 	FVector Upper = {0, 0, 70};
-	Grenade = GetWorld() -> SpawnActor<AGrenade>(GrenadeClass, GetActorLocation() + Upper, GetActorRotation());
-	//}
-	//FirsttimeGrenade = false;
-	//Grenade = GetWorld() -> SpawnActor<AGrenade>(GrenadeClass);
-	Grenade -> StartSimulate();
+	if(IsGrenadePrepared == true){	
+		Grenade = GetWorld() -> SpawnActor<AGrenade>(GrenadeClass, GetActorLocation() + Upper, GetActorRotation());
+		//}
+		//FirsttimeGrenade = false;
+		//Grenade = GetWorld() -> SpawnActor<AGrenade>(GrenadeClass);
+		Grenade -> StartSimulate();
+	}
 }
 
 
@@ -250,7 +271,11 @@ void AShooterCharacter::OnThrowPress()
 void AShooterCharacter::OnThrowRelease() 
 {
 	//Grenade -> DetachFromActor(FDetachmentTransformRules::KeepWorldTransform);
-	Grenade -> IsSimulating = false;
-	UE_LOG(LogTemp, Warning, TEXT("On throw release"));
-	Grenade -> Throw();
+	if(IsGrenadePrepared == true && Grenade -> IsSimulating == true){	
+		IsGrenadePrepared = false;
+		Grenade -> IsSimulating = false;
+		UE_LOG(LogTemp, Warning, TEXT("On throw release"));
+		Grenade -> Throw();
+		LastGrenadeThrowRecord = GetWorld() -> GetTimeSeconds();
+	}
 }

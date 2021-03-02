@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "Camera/CameraComponent.h"
+#include "Components/SphereComponent.h"
 #include "Grenade.generated.h"
 class AShooterCharacter;
 
@@ -27,7 +28,8 @@ private:
  	FRotator PlayerRotator = {0, 0, 0};
 
 	AShooterCharacter* PlayerShooter;
-
+	void DebugComponentFinding();
+	void DebugListOverLapActors();
 public:	
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* Root;
@@ -35,13 +37,20 @@ public:
 	UPROPERTY(VisibleAnywhere)
 	USkeletalMeshComponent* Mesh;
 
-
+	UPROPERTY(VisibleAnywhere)
+	USphereComponent* DamageSphere;
 
 	UPROPERTY(VisibleAnywhere)
 	USceneComponent* HoldingComp;
 
+	
+
+	UPROPERTY(VisibleAnywhere)
+	TArray<AActor*> OverlappingCharacters;
+
 	void Throw();
 	UCameraComponent* PlayerCamera;
+
 	FVector ForwardVector;
 
 	UPROPERTY(VisibleAnywhere)
@@ -54,12 +63,19 @@ public:
 	UPROPERTY(EditAnywhere)
 	UParticleSystem* ExplodeFlash;
 
+	UPROPERTY(EditAnywhere)
+	USoundBase* ExplosionSound;
+	UPROPERTY(EditAnywhere)
+	USoundBase* ThrowSound;
+
+	UPROPERTY(EditAnywhere)
+	FVector EffectsScale = {10, 10, 10};
 	// Called every frame
 	virtual void Tick(float DeltaTime) override;
 	void StartSimulate();
 	void SimulatePath();
 	void Explode();
-
+	void DoDamage();
 	UPROPERTY(EditDefaultsOnly)
 	float SimulateRate = 10.f;
 

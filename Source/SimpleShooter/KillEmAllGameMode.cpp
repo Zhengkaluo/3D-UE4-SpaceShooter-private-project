@@ -46,7 +46,7 @@ float AKillEmAllGameMode::GetCurrentTime() const
 void AKillEmAllGameMode::Tick(float DeltaTime) 
 {   
     Super::Tick(DeltaTime);
-    if(GetCurrentTime() - LastSpawnTime >= 7.0f){
+    if(GetCurrentTime() - LastSpawnTime >= 15.0f){
         if(CurrentSpawning <= 16){
             SpawnEnemy();
             LastSpawnTime = GetCurrentTime();
@@ -83,10 +83,11 @@ void AKillEmAllGameMode::SpawnEnemy()
     FVector ChosenVector = SpawnLocationArray[index];
     UE_LOG(LogTemp, Warning, TEXT("SPawnLocation %s Rotation %s"), *(ChosenVector.ToString()), *(SpawnRotation.ToString()));
     // AIEnemy = GetWorld() -> SpawnActor<AShooterCharacter>(ShooterAIClass);
-    if(CurrentSpawning < 8){
+    
+    if(CurrentSpawning < 4){
         AIEnemy[CurrentSpawning] = GetWorld() -> SpawnActor<AShooterCharacter>(ShooterAIClass, ChosenVector, SpawnRotation);
     }
-    else{
+    else if(CurrentSpawning < 6{
         AIEnemy[CurrentSpawning] = GetWorld() -> SpawnActor<AShooterCharacter>(ShooterStrongAIClass, ChosenVector, SpawnRotation);
     }
     CurrentSpawning++;

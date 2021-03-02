@@ -40,10 +40,12 @@ public:
 
 	UFUNCTION(BlueprintPure)
 	float GetTimer() const;
-
 	
 	UFUNCTION(BlueprintPure)
 	float Healing();
+
+	UFUNCTION(BlueprintPure)
+	FString GetGrenadeColdDown() const;
 
 	UPROPERTY(EditAnywhere)
 	USoundBase* ReloadVoice;
@@ -51,6 +53,9 @@ public:
 	UPROPERTY(EditAnywhere)
 	USoundBase* HealSound; 
 
+	UPROPERTY(EditAnywhere)
+	UParticleSystem* HealEffect;
+	
 	UPROPERTY(VisibleAnywhere)
 	UPawnSensingComponent* PawnSensingComp;
 
@@ -80,6 +85,7 @@ private:
 	void MoveForward(float AxisValue);
 	void MoveRight(float AxisValue);
 	void LookUpRate(float AxisValue);
+	
 	APawn *PlayerPawn;
 	UPROPERTY(EditAnywhere)
 	float RotationRate = 10;
@@ -105,6 +111,13 @@ private:
 	UPROPERTY()
 	AGrenade* Grenade;
 	
+	UPROPERTY(EditAnywhere)
+	float GrenadeThrowColdDown = 10.f;
+
+	float LastGrenadeThrowRecord;
+
+	UPROPERTY(VisibleAnywhere)
+	bool IsGrenadePrepared = true;
 
 	UPROPERTY(EditDefaultsOnly)
 	float MaxHealth;

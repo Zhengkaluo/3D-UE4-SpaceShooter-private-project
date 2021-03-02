@@ -5,6 +5,7 @@
 #include "Grenade.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Actor.h"
+#include "Components/SphereComponent.h"
 #include "Camera/CameraComponent.h"
 #include "ShooterCharacter.h"
 // Sets default values
@@ -49,10 +50,39 @@ void AGrenade::BeginPlay()
 			}
 		}
 	} 
-	UE_LOG(LogTemp, Warning, TEXT("Holding Component name %s"), *HoldingComp -> GetName())
-
+	DamageSphere = FindComponentByClass<USphereComponent>();
+	DebugComponentFinding();
 	//
 }
+
+void AGrenade::DebugComponentFinding() 
+{
+	if(HoldingComp == nullptr){
+		UE_LOG(LogTemp, Warning, TEXT("Didnt find holdingComponent!!"));
+	}
+	else{
+		UE_LOG(LogTemp, Warning, TEXT("Holding Component name %s"), *HoldingComp -> GetName());
+	}	
+	if(DamageSphere == nullptr){
+		UE_LOG(LogTemp, Warning, TEXT("Didnt find damagesphere!"));
+	}
+	else{
+		UE_LOG(LogTemp, Warning, TEXT("DamageSphere Component name %s"), *DamageSphere -> GetName());
+	}
+}
+
+void AGrenade::DebugListOverLapActors() 
+{
+	if(OverlappingCharacters.Num() == 0){
+		UE_LOG(LogTemp, Warning, TEXT("No overlapping actors!"));
+	}
+	else{
+		for(auto& Actor: OverlappingCharacters){
+			UE_LOG(LogTemp, Warning, TEXT("Overlap actor name: %s"), *(Actor -> GetName()));
+		}
+	}
+}
+
 
 void AGrenade::Throw() 
 {
@@ -61,7 +91,9 @@ void AGrenade::Throw()
 	Mesh -> SetCollisionEnabled(IsHolding ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics);
 	ForwardVector = PlayerCamera->GetForwardVector();
 	Mesh -> AddForce (((ForwardVector * 100000) + Accesend * 600) * Mesh -> GetMass());
-
+	if(ThrowSound != nullptr){
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ThrowSound, GetActorLocation());
+	}
 	//Start explode countdown
 	ThrowTimeRecord = GetWorld() -> GetTimeSeconds();
 }
@@ -88,7 +120,7 @@ void AGrenade::Tick(float DeltaTime)
 		UE_LOG(LogTemp, Warning, TEXT("Calling explode function"));
 		Explode();
 	}
-	
+
 }
 
 void AGrenade::StartSimulate() 
@@ -121,11 +153,31 @@ void AGrenade::SimulatePath()
 void AGrenade::Explode() 
 {	
 	if(ExplodeFlash != nullptr){
-		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplodeFlash, GetActorLocation(), GetActorRotation());
+		//UParticleSystemComponent* UGameplayStatics::SpawnEmitterAtLocation(const UObject* WorldContextObject, UParticleSystem* EmitterTemplate, FVector SpawnLocation, FRotator SpawnRotation, bool bAutoDestroy, EPSCPoolMethod PoolingMethod, bool bAutoActivateSystem)
+		//UParticleSystemComponent* UGameplayStatics::SpawnEmitterAtLocation(const UObject* WorldContextObject, UParticleSystem* EmitterTemplate, FVector SpawnLocation, FRotator SpawnRotation, FVector SpawnScale, bool bAutoDestroy, EPSCPoolMethod PoolingMethod, bool bAutoActivateSystem)
+		UGameplayStatics::SpawnEmitterAtLocation(GetWorld(), ExplodeFlash, GetActorLocation(), GetActorRotation(), EffectsScale);
 	}
 	ThrowTimeRecord = 0.f;
+	
 	//UE_LOG(LogTemp, Warning, TEXT("My transform to root %s"), *(Mesh -> TransformToRoot)->ToString());
 	UE_LOG(LogTemp, Warning, TEXT("%s exploded"), *GetName());
+	DamageSphere -> GetOverlappingActors(OverlappingCharacters, TSubclassOf<AShooterCharacter>());
+	if(ExplosionSound != nullptr){
+		UGameplayStatics::PlaySoundAtLocation(GetWorld(), ExplosionSound, GetActorLocation());
+	}
+	DoDamage();
+	DebugListOverLapActors();
 	this -> Destroy();
+}
+
+void AGrenade::DoDamage() 
+{
+ 	FDamageEvent DamageEvent = FDamageEvent();
+	AController *PlayerController = PlayerShooter -> GetController();
+	if(OverlappingCharacters.Num() != 0){
+		for(auto& Actor: OverlappingCharacters){
+			Actor -> TakeDamage(100, DamageEvent, PlayerController, this);
+		}
+	}
 }
 
